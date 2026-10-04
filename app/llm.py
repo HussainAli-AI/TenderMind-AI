@@ -57,31 +57,67 @@ def call_llm_json(system_prompt: str, user_prompt: str, model: str = None) -> di
     if not api_key:
         raise ValueError(
             "GROQ_API_KEY is required to process tender documents live. "
-            "Please provide GROQ_API_KEY in .streamlit/secrets.toml or in the UI sidebar."
+            "Please provide GROQ_API_KEY in .streamlit/secrets.toml."
         )
 
     client = get_groq_client()
-    selected_model = model if model else get_best_model(client)
+    
+    # Query live available models from Groq
+    available = []
+    try:
+        available = [m.id for m in client.models.list().data]
+    except Exception:
+        pass
 
-    response = client.chat.completions.create(
-        model=selected_model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.0,
-        response_format={"type": "json_object"}
-    )
+    candidates = []
+    if model and model in available:
+        candidates.append(model)
     
-    content = response.choices[0].message.content.strip()
-    # Strip markdown block if wrapped
-    if content.startswith("```json"):
-        content = content[7:]
-    if content.startswith("```"):
-        content = content[3:]
-    if content.endswith("```"):
-        content = content[:-3]
+    preferred_order = [
+        "qwen/qwen3.8-27b",
+        "openai/gpt-oss-120b",
+        "allam-2-7b",
+        "openai/gpt-oss-20b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant"
+    ]
+    for p in preferred_order:
+        if p in available and p not in candidates:
+            candidates.append(p)
     
-    result = json.loads(content.strip())
-    cache[cache_key] = result
-    return result
+    # Fallback to any remaining available chat model
+    for a in available:
+        if a not in candidates and ("whisper" not in a and "guard" not in a):
+            candidates.append(a)
+            
+    if not candidates:
+        candidates = ["qwen/qwen3.8-27b", "openai/gpt-oss-20b", "llama-3.1-8b-instant"]
+
+    last_err = None
+    for selected_model in candidates:
+        try:
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.0,
+                response_format={"type": "json_object"}
+            )
+            content = response.choices[0].message.content.strip()
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            
+            result = json.loads(content.strip())
+            cache[cache_key] = result
+            return result
+        except Exception as e:
+            last_err = e
+            continue
+
+    raise RuntimeError(f"All candidate Groq models failed. Last error: {last_err}")
