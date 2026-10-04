@@ -3,6 +3,7 @@ import yaml
 import os
 import sys
 import json
+import textwrap
 from io import BytesIO
 
 # Ensure app is discoverable on python path
@@ -21,7 +22,7 @@ st.set_page_config(
 )
 
 # High-End Aesthetics & Custom Design Tokens
-st.markdown("""
+st.markdown(textwrap.dedent("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
     
@@ -36,7 +37,7 @@ st.markdown("""
     
     /* Top Brand Hero */
     .hero-container {
-        padding: 2.2rem 2.5rem;
+        padding: 2rem 2.2rem;
         background: linear-gradient(135deg, rgba(22, 31, 48, 0.75) 0%, rgba(11, 15, 23, 0.95) 100%);
         border: 1px solid rgba(59, 130, 246, 0.25);
         border-radius: 20px;
@@ -45,17 +46,6 @@ st.markdown("""
         backdrop-filter: blur(16px);
         position: relative;
         overflow: hidden;
-    }
-    .hero-container::after {
-        content: "";
-        position: absolute;
-        top: -60px;
-        right: -60px;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(0,0,0,0) 70%);
-        border-radius: 50%;
-        pointer-events: none;
     }
     
     .badge-pill {
@@ -98,13 +88,7 @@ st.markdown("""
         padding: 1.4rem;
         text-align: center;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         backdrop-filter: blur(12px);
-    }
-    .metric-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(99, 102, 241, 0.5);
-        box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.25);
     }
     .metric-val {
         font-family: 'Outfit', sans-serif;
@@ -170,15 +154,6 @@ st.markdown("""
         border-right: 1px solid rgba(255,255,255,0.04);
     }
     
-    /* Sidebar Profile Card */
-    .profile-card {
-        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
-        padding: 1rem 1.2rem;
-        margin: 1rem 0;
-    }
-    
     /* Glass Panel */
     .glass-panel {
         background: rgba(22, 31, 48, 0.6);
@@ -188,7 +163,7 @@ st.markdown("""
         margin-bottom: 1rem;
     }
 </style>
-""", unsafe_allow_html=True)
+"""), unsafe_allow_html=True)
 
 # Contractor Profiles
 PRESET_PROFILES = {
@@ -239,21 +214,21 @@ PRESET_PROFILES = {
 
 # Sidebar: Enterprise Brand & Contractor Profile Vault
 with st.sidebar:
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.25)); border: 1px solid rgba(99,102,241,0.35); padding: 16px; border-radius: 14px; margin-bottom: 1.2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    st.markdown(textwrap.dedent("""
+    <div style="background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.25)); border: 1px solid rgba(99,102,241,0.35); padding: 16px; border-radius: 14px; margin-bottom: 1.2rem;">
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="font-size: 1.8rem; background: rgba(59,130,246,0.2); padding: 6px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.4);">🏛️</div>
             <div>
-                <div style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.25rem; color: #F8FAFC; letter-spacing: -0.01em;">TenderMind AI</div>
+                <div style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.2rem; color: #F8FAFC;">TenderMind AI</div>
                 <div style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Autonomous Bid Intelligence</div>
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08);">
             <span style="height: 8px; width: 8px; background-color: #10B981; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #10B981;"></span>
-            <span style="font-size: 0.75rem; color: #34D399; font-weight: 700; letter-spacing: 0.03em;">SWARM ENGINE READY</span>
+            <span style="font-size: 0.75rem; color: #34D399; font-weight: 700;">SWARM ENGINE READY</span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     st.markdown("#### 🏢 Active Contractor Profile")
     selected_preset = st.selectbox(
@@ -264,27 +239,21 @@ with st.sidebar:
     )
     profile = PRESET_PROFILES[selected_preset]
     
-    st.markdown(f"""
-    <div class="profile-card">
-        <div style="font-size: 0.8rem; color: #94A3B8; font-weight: 600; text-transform: uppercase;">Company Name</div>
-        <div style="font-weight: 700; font-size: 0.95rem; color: #F8FAFC; margin-bottom: 8px;">{profile['company_name']}</div>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 0.8rem; color: #94A3B8;">PEC License:</span>
-            <span style="font-weight: 800; color: #60A5FA; background: rgba(59,130,246,0.15); padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(59,130,246,0.3);">{profile['licence_category']}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-            <span style="font-size: 0.8rem; color: #94A3B8;">Max Bid Security:</span>
-            <span style="font-weight: 600; color: #E2E8F0; font-size: 0.85rem;">PKR {profile['max_bid_security_pkr']:,}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-            <span style="font-size: 0.8rem; color: #94A3B8;">Annual Turnover:</span>
-            <span style="font-weight: 600; color: #E2E8F0; font-size: 0.85rem;">PKR {profile['turnover_pkr']:,}</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.caption("COMPANY NAME")
+        st.markdown(f"**{profile['company_name']}**")
+        st.divider()
+        col_pec, col_cap = st.columns(2)
+        with col_pec:
+            st.caption("PEC LICENSE")
+            st.markdown(f"🏷️ `{profile['licence_category']}`")
+        with col_cap:
+            st.caption("MAX SECURITY")
+            st.markdown(f"PKR {profile['max_bid_security_pkr']/1e6:.1f}M")
+        st.caption("ANNUAL TURNOVER")
+        st.markdown(f"PKR {profile['turnover_pkr']:,}")
     
-    with st.expander("📁 Verified Credentials & Vault Repository", expanded=False):
+    with st.expander("📁 Verified Credentials & Vault", expanded=False):
         st.markdown("**Tax Registrations:**")
         for r in profile["registrations"]:
             st.markdown(f"• `{r}`")
@@ -292,37 +261,33 @@ with st.sidebar:
         for d in profile["documents"]:
             st.markdown(f"• `{d}`")
 
-    st.markdown("""
+    st.markdown(textwrap.dedent("""
     <div style="margin-top: 1.5rem; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.72rem; color: #64748B; line-height: 1.6;">
-        <b style="color: #94A3B8;">LangGraph Multi-Agent Stack:</b><br/>
+        <b style="color: #94A3B8;">Multi-Agent Swarm Pipeline:</b><br/>
         1. <b>Ingestion:</b> pypdfium2 / OCR<br/>
         2. <b>Retrieval:</b> BM25 Okapi Chunker<br/>
         3. <b>Reasoning:</b> Cloud Inference Node<br/>
-        4. <b>Grounding:</b> Verifier (Zero-Hallucination)<br/>
+        4. <b>Grounding:</b> Verifier (Anti-Hallucination)<br/>
         5. <b>Rules:</b> Statutory Deterministic Matcher
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
 # Main Hero Header
-st.markdown("""
+st.markdown(textwrap.dedent("""
 <div class="hero-container">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <div>
-                <span class="badge-pill badge-primary">⚡ LangGraph Swarm</span>
-                <span class="badge-pill badge-success">🛡️ Zero Hallucination Guarantee</span>
-                <span class="badge-pill badge-purple">⚖️ PPRA & PEC Compliant</span>
-            </div>
-            <h1 style="margin: 0.8rem 0 0.3rem 0; font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; color: #F8FAFC; letter-spacing: -0.02em;">
-                TenderMind AI
-            </h1>
-            <p style="margin: 0; color: #94A3B8; font-size: 1.1rem; max-width: 800px; line-height: 1.5;">
-                Autonomous Bid/No-Bid Decision Engine. Ingests procurement documents, verifies verbatim grounding quotes, and checks statutory constraints in seconds.
-            </p>
-        </div>
+    <div>
+        <span class="badge-pill badge-primary">⚡ LangGraph Swarm</span>
+        <span class="badge-pill badge-success">🛡️ Zero Hallucination Guarantee</span>
+        <span class="badge-pill badge-purple">⚖️ PPRA & PEC Compliant</span>
     </div>
+    <h1 style="margin: 0.8rem 0 0.3rem 0; font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; color: #F8FAFC; letter-spacing: -0.02em;">
+        TenderMind AI
+    </h1>
+    <p style="margin: 0; color: #94A3B8; font-size: 1.1rem; max-width: 800px; line-height: 1.5;">
+        Autonomous Bid/No-Bid Decision Engine. Ingests procurement documents, verifies verbatim grounding quotes, and checks statutory constraints in seconds.
+    </p>
 </div>
-""", unsafe_allow_html=True)
+"""), unsafe_allow_html=True)
 
 # Ingestion Source Switcher
 st.markdown("### 1. Select or Upload Tender Documentation")
@@ -357,17 +322,12 @@ else:
         active_filename = uploaded_file.name
 
 if active_bytes:
-    st.markdown(f"""
-    <div class="glass-panel" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <span style="font-weight: 700; color: #F8FAFC;">Active Document:</span> <code>{active_filename}</code>
-            <span style="color: #64748B; margin-left: 10px;">({len(active_bytes):,} bytes)</span>
-        </div>
-        <div>
-            <span style="color: #34D399; font-weight: 600; font-size: 0.85rem;">● Document Ready for Multi-Agent Swarm</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        c_name, c_ready = st.columns([3, 1])
+        with c_name:
+            st.markdown(f"**Active Document:** `{active_filename}` ({len(active_bytes):,} bytes)")
+        with c_ready:
+            st.markdown("<span style='color: #34D399; font-weight: 700;'>● Ready for Swarm</span>", unsafe_allow_html=True)
     
     if st.button("🚀 Run Autonomous Bid Assessment", type="primary", use_container_width=True):
         progress_bar = st.progress(0, text="Initializing Multi-Agent LangGraph Swarm...")
@@ -427,7 +387,7 @@ if "tender_results" in st.session_state:
     
     # 1. Glowing Hero Verdict Banner
     if "BID (Qualified)" in verdict:
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="verdict-banner-pass">
             <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #6EE7B7; margin-bottom: 6px;">Executive Evaluation Complete</div>
             <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 2.4rem; font-weight: 800; letter-spacing: -0.01em;">🟢 VERDICT: BID (QUALIFIED)</h2>
@@ -435,9 +395,9 @@ if "tender_results" in st.session_state:
                 All mandatory statutory, technical (PEC {prof['licence_category']}), and financial guarantee conditions verified with 100% confidence.
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
     elif "NO-BID" in verdict:
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="verdict-banner-fail">
             <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #FCA5A5; margin-bottom: 6px;">Executive Evaluation Complete</div>
             <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 2.4rem; font-weight: 800; letter-spacing: -0.01em;">🔴 VERDICT: NO-BID (DISQUALIFIED)</h2>
@@ -445,9 +405,9 @@ if "tender_results" in st.session_state:
                 Critical non-compliance or capacity disqualifications identified. Submitting a bid without remediation will lead to statutory forfeiture.
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
     else:
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="verdict-banner-warn">
             <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #FDE68A; margin-bottom: 6px;">Executive Evaluation Complete</div>
             <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 2.4rem; font-weight: 800; letter-spacing: -0.01em;">🟡 VERDICT: BID IF (CLARIFICATION REQUIRED)</h2>
@@ -455,7 +415,7 @@ if "tender_results" in st.session_state:
                 Core contractor criteria pass, but ambiguous specifications require formal pre-bid clarification with the procuring agency.
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     # 2. Executive KPI Cards
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
@@ -480,39 +440,39 @@ if "tender_results" in st.session_state:
     verif_rate = (verified_fields_count / total_fields * 100) if total_fields else 100
 
     with kpi1:
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="metric-card">
             <div class="metric-label">Rules Evaluation</div>
             <div class="metric-val">{pass_rules_count} / {total_rules}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     with kpi2:
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="metric-card">
             <div class="metric-label">Grounding Confidence</div>
             <div class="metric-val">{verif_rate:.0f}%</div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     with kpi3:
         pec_stat = next((r["status"] for r in rules if r["rule_id"] == "R1"), "N/A")
         color = "#34D399" if pec_stat == "PASS" else ("#F87171" if pec_stat == "FAIL" else "#FBBF24")
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="metric-card">
             <div class="metric-label">PEC Match ({prof['licence_category']})</div>
             <div class="metric-val" style="color: {color};">{pec_stat}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     with kpi4:
         doc_stat = next((r["status"] for r in rules if r["rule_id"] == "R4"), "N/A")
-        st.markdown(f"""
+        st.markdown(textwrap.dedent(f"""
         <div class="metric-card">
             <div class="metric-label">Document Readiness</div>
             <div class="metric-val">{doc_stat}</div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     st.markdown("<br/>", unsafe_allow_html=True)
 
@@ -531,17 +491,15 @@ if "tender_results" in st.session_state:
             sev_badge = "HARD CONSTRAINT" if r["severity"] == "hard" else "SOFT CONSTRAINT"
             sev_color = "#EF4444" if r["severity"] == "hard" else "#3B82F6"
             
-            with st.container():
-                st.markdown(f"""
-                <div class="glass-panel" style="margin-bottom: 0.8rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; font-size: 1.05rem; color: #F8FAFC;">{status_icon} [{r['rule_id']}] {r['name']}</span>
-                        <span style="font-size: 0.75rem; font-weight: 700; color: {sev_color}; background: rgba(255,255,255,0.06); padding: 3px 10px; border-radius: 9999px;">{sev_badge}</span>
-                    </div>
-                    <div style="margin: 8px 0; color: #CBD5E1; font-size: 0.95rem;">{r['reason']}</div>
-                    {f'<div class="quote-box"><b>Grounding Evidence:</b> {r["evidence"]}</div>' if r.get('evidence') else ''}
-                </div>
-                """, unsafe_allow_html=True)
+            with st.container(border=True):
+                c_hd, c_bd = st.columns([3, 1])
+                with c_hd:
+                    st.markdown(f"**{status_icon} [{r['rule_id']}] {r['name']}**")
+                with c_bd:
+                    st.markdown(f"<span style='color: {sev_color}; font-weight: 700; font-size: 0.75rem; border: 1px solid {sev_color}; padding: 2px 8px; border-radius: 9999px;'>{sev_badge}</span>", unsafe_allow_html=True)
+                st.markdown(f"<div style='color: #CBD5E1; margin: 4px 0;'>{r['reason']}</div>", unsafe_allow_html=True)
+                if r.get("evidence"):
+                    st.markdown(f"<div class='quote-box'><b>Grounding Evidence:</b> {r['evidence']}</div>", unsafe_allow_html=True)
 
     with tab_evidence:
         st.markdown("#### Anti-Hallucination Grounding Audit")
@@ -597,21 +555,16 @@ if "tender_results" in st.session_state:
 
     # 4. Export Bid Pack
     st.divider()
-    st.markdown("""
-    <div class="glass-panel" style="text-align: center; padding: 2rem;">
-        <h3 style="margin-top: 0; font-family: 'Outfit', sans-serif;">📥 Export Official Executive Bid Pack</h3>
-        <p style="color: #94A3B8; max-width: 650px; margin: 0 auto 1.5rem auto;">
-            Generate an official audit document in Microsoft Word (.docx) format containing the compliance statement, verbatim quote citations, and rule assessment.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    docx_stream = generate_bid_pack_docx(verdict, verified, rules, prof)
-    st.download_button(
-        label="📥 Download Official Bid Pack (.docx)",
-        data=docx_stream,
-        file_name=f"TenderMind_Bid_Pack_{active_filename.replace('.pdf', '')}.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        type="primary",
-        use_container_width=True
-    )
+    with st.container(border=True):
+        st.markdown("<h3 style='margin-top: 0; font-family: Outfit, sans-serif; text-align: center;'>📥 Export Official Executive Bid Pack</h3>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #94A3B8; text-align: center; max-width: 650px; margin: 0 auto 1.5rem auto;'>Generate an official audit document in Microsoft Word (.docx) format containing the compliance statement, verbatim quote citations, and rule assessment.</p>", unsafe_allow_html=True)
+        
+        docx_stream = generate_bid_pack_docx(verdict, verified, rules, prof)
+        st.download_button(
+            label="📥 Download Official Bid Pack (.docx)",
+            data=docx_stream,
+            file_name=f"TenderMind_Bid_Pack_{active_filename.replace('.pdf', '')}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            type="primary",
+            use_container_width=True
+        )
