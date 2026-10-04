@@ -20,5 +20,9 @@ Every 'quote' MUST be an exact verbatim substring from the cited page text (max 
 
 def run_extractor(context_chunks: list) -> dict:
     context_str = "\n\n".join(f"[Page {c['page']}]\n{c['text']}" for c in context_chunks)
-    user_prompt = f"Extract all procurement conditions from the context below:\n\n<tender_context>\n{context_str}\n</tender_context>"
+    user_prompt = (
+        f"Extract all procurement conditions from the context below into valid JSON:\n\n"
+        f"<tender_context>\n{context_str}\n</tender_context>\n\n"
+        f"Respond with a valid JSON object matching the requested schema."
+    )
     return call_llm_json(EXTRACTION_SYSTEM_PROMPT, user_prompt)

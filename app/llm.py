@@ -28,26 +28,43 @@ def get_groq_client():
     from groq import Groq
     return Groq(api_key=api_key)
 
-def call_llm_json(system_prompt: str, user_prompt: str, model: str = "llama-3.1-8b-instant") -> dict:
-    cache_key = hashlib.sha256(f"{model}:{system_prompt}:{user_prompt}".encode()).hexdigest()
+def get_best_model(client) -> str:
+    try:
+        available = [m.id for m in client.models.list().data]
+        priority_models = [
+            "qwen/qwen3.8-27b",
+            "openai/gpt-oss-120b",
+            "allam-2-7b",
+            "openai/gpt-oss-20b",
+            "llama-3.1-8b-instant",
+            "llama-3.3-70b-versatile"
+        ]
+        for p in priority_models:
+            if p in available:
+                return p
+        if available:
+            return available[0]
+    except Exception:
+        pass
+    return "qwen/qwen3.8-27b"
+
+def call_llm_json(system_prompt: str, user_prompt: str, model: str = None) -> dict:
+    cache_key = hashlib.sha256(f"{system_prompt}:{user_prompt}".encode()).hexdigest()
     if cache_key in cache:
         return cache[cache_key]
 
     api_key = get_groq_api_key()
     if not api_key:
-        # Check if we have pre-cached fallback response for demo/offline resilience
-        for key in cache:
-            val = cache[key]
-            if isinstance(val, dict) and "submission_deadline" in val:
-                return val
         raise ValueError(
-            "GROQ_API_KEY is required to process new unseen tenders. "
-            "Please provide GROQ_API_KEY in the sidebar or in .streamlit/secrets.toml."
+            "GROQ_API_KEY is required to process tender documents live. "
+            "Please provide GROQ_API_KEY in .streamlit/secrets.toml or in the UI sidebar."
         )
 
     client = get_groq_client()
+    selected_model = model if model else get_best_model(client)
+
     response = client.chat.completions.create(
-        model=model,
+        model=selected_model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -56,7 +73,15 @@ def call_llm_json(system_prompt: str, user_prompt: str, model: str = "llama-3.1-
         response_format={"type": "json_object"}
     )
     
-    content = response.choices[0].message.content
-    result = json.loads(content)
+    content = response.choices[0].message.content.strip()
+    # Strip markdown block if wrapped
+    if content.startswith("```json"):
+        content = content[7:]
+    if content.startswith("```"):
+        content = content[3:]
+    if content.endswith("```"):
+        content = content[:-3]
+    
+    result = json.loads(content.strip())
     cache[cache_key] = result
     return result
