@@ -1,0 +1,25 @@
+fields:
+  submission_deadline:
+    description: "Exact closing date and time for bid submission"
+    type: "string"
+    required: true
+  bid_security:
+    description: "Earnest money, bid security percentage or fixed PKR amount"
+    type: "string"
+    required: true
+  required_pec_category:
+    description: "Pakistan Engineering Council (PEC) required license category (e.g. C-4, C-3, C-5)"
+    type: "string"
+    required: true
+  tax_requirements:
+    description: "Tax registrations needed such as FBR active taxpayer, NTN, STRN, PRA"
+    type: "list"
+    required: true
+  required_documents:
+    description: "List of mandatory qualification documents requested in the tender notice"
+    type: "list"
+    required: true
+  estimated_cost:
+    description: "Estimated cost of the procurement project in PKR if stated"
+    type: "string"
+    required: false
