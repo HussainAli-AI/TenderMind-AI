@@ -13,6 +13,7 @@ from app.tools.pdf import extract_pdf_pages
 from app.graph import build_tender_graph
 from app.tools.export import generate_bid_pack_docx
 from app.llm import get_groq_api_key
+from app.tools.profile_manager import get_all_profiles, save_custom_profile, delete_custom_profile
 
 st.set_page_config(
     page_title="TenderMind AI — Autonomous Bid/No-Bid Decision Engine",
@@ -21,7 +22,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# High-End Aesthetics & Custom Design Tokens
+# High-End Dark Theme Styling
 st.markdown(textwrap.dedent("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -44,8 +45,6 @@ st.markdown(textwrap.dedent("""
         margin-bottom: 2rem;
         box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(16px);
-        position: relative;
-        overflow: hidden;
     }
     
     .badge-pill {
@@ -153,66 +152,13 @@ st.markdown(textwrap.dedent("""
         border-bottom: 1px solid rgba(255,255,255,0.04);
         border-right: 1px solid rgba(255,255,255,0.04);
     }
-    
-    /* Glass Panel */
-    .glass-panel {
-        background: rgba(22, 31, 48, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: 14px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
-    }
 </style>
 """), unsafe_allow_html=True)
 
-# Contractor Profiles
-PRESET_PROFILES = {
-    "Apex Engineering & Tech (PEC C-4)": {
-        "company_name": "Apex Engineering & Tech Solutions Pvt Ltd",
-        "licence_category": "C-4",
-        "turnover_pkr": 85000000,
-        "max_bid_security_pkr": 3000000,
-        "registrations": ["FBR Active Taxpayer (NTN)", "Sales Tax Registration (STRN)", "PEC Registered (Pakistan Engineering Council)"],
-        "documents": [
-            "Company Registration Certificate",
-            "FBR Tax Clearance Certificate",
-            "PEC Valid License",
-            "Audited Financial Statements (Last 3 Years)",
-            "Past Relevant Experience Proof",
-            "Bank Guarantee Capability Letter"
-        ]
-    },
-    "Pioneer Heavy Constructors (PEC C-2)": {
-        "company_name": "Pioneer Heavy Constructors Ltd",
-        "licence_category": "C-2",
-        "turnover_pkr": 350000000,
-        "max_bid_security_pkr": 15000000,
-        "registrations": ["FBR Active Taxpayer (NTN)", "Sales Tax Registration (STRN)", "PEC Registered (Pakistan Engineering Council)"],
-        "documents": [
-            "Company Registration Certificate",
-            "FBR Tax Clearance Certificate",
-            "PEC Valid License",
-            "Audited Financial Statements (Last 3 Years)",
-            "Past Relevant Experience Proof",
-            "Bank Guarantee Capability Letter",
-            "Machinery Ownership Proof",
-            "5-Year Audited Balance Sheets"
-        ]
-    },
-    "Novice Local Services (PEC C-6)": {
-        "company_name": "Novice Local Services LLP",
-        "licence_category": "C-6",
-        "turnover_pkr": 8000000,
-        "max_bid_security_pkr": 500000,
-        "registrations": ["FBR Active Taxpayer (NTN)"],
-        "documents": [
-            "Company Registration Certificate",
-            "FBR Tax Clearance Certificate"
-        ]
-    }
-}
+# Load All Company Profiles (Presets + User Custom Profiles)
+all_profiles = get_all_profiles()
 
-# Sidebar: Enterprise Brand & Contractor Profile Vault
+# Sidebar: Enterprise Branding & Company Profile Manager
 with st.sidebar:
     st.markdown(textwrap.dedent("""
     <div style="background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.25)); border: 1px solid rgba(99,102,241,0.35); padding: 16px; border-radius: 14px; margin-bottom: 1.2rem;">
@@ -231,16 +177,23 @@ with st.sidebar:
     """), unsafe_allow_html=True)
 
     st.markdown("#### 🏢 Active Contractor Profile")
-    selected_preset = st.selectbox(
-        "Switch Contractor Identity:",
-        list(PRESET_PROFILES.keys()),
-        index=0,
-        label_visibility="collapsed"
-    )
-    profile = PRESET_PROFILES[selected_preset]
     
+    # Selected Profile Key in Session State
+    if "selected_profile_key" not in st.session_state or st.session_state["selected_profile_key"] not in all_profiles:
+        st.session_state["selected_profile_key"] = list(all_profiles.keys())[0]
+
+    selected_preset = st.selectbox(
+        "Select Active Contractor Profile:",
+        list(all_profiles.keys()),
+        index=list(all_profiles.keys()).index(st.session_state["selected_profile_key"]),
+        key="profile_selector"
+    )
+    st.session_state["selected_profile_key"] = selected_preset
+    profile = all_profiles[selected_preset]
+    
+    # Clean Native Profile Container (Zero raw HTML leak)
     with st.container(border=True):
-        st.caption("COMPANY NAME")
+        st.caption("COMPANY LEGAL NAME")
         st.markdown(f"**{profile['company_name']}**")
         st.divider()
         col_pec, col_cap = st.columns(2)
@@ -252,14 +205,117 @@ with st.sidebar:
             st.markdown(f"PKR {profile['max_bid_security_pkr']/1e6:.1f}M")
         st.caption("ANNUAL TURNOVER")
         st.markdown(f"PKR {profile['turnover_pkr']:,}")
-    
+
     with st.expander("📁 Verified Credentials & Vault", expanded=False):
         st.markdown("**Tax Registrations:**")
-        for r in profile["registrations"]:
+        for r in profile.get("registrations", []):
             st.markdown(f"• `{r}`")
         st.markdown("**Documents in Vault:**")
-        for d in profile["documents"]:
+        for d in profile.get("documents", []):
             st.markdown(f"• `{d}`")
+            
+        if profile.get("is_custom", False):
+            st.divider()
+            if st.button("🗑️ Delete This Custom Profile", type="secondary", use_container_width=True):
+                delete_custom_profile(selected_preset)
+                st.session_state["selected_profile_key"] = list(get_all_profiles().keys())[0]
+                st.success("Profile deleted!")
+                st.rerun()
+
+    # Form to Add New Company Profile
+    with st.expander("➕ Add New Company Profile", expanded=False):
+        st.markdown("##### 📝 Create New Contractor Identity")
+        with st.form("new_profile_form", clear_on_submit=True):
+            new_comp_name = st.text_input("Company Legal Name", placeholder="e.g. Allied Builders & Tech Pvt Ltd")
+            
+            new_pec_cat = st.selectbox(
+                "PEC Category",
+                [
+                    "C-A (Unlimited)",
+                    "C-B (Up to PKR 4,000M)",
+                    "C-1 (Up to PKR 2,500M)",
+                    "C-2 (Up to PKR 1,000M)",
+                    "C-3 (Up to PKR 500M)",
+                    "C-4 (Up to PKR 200M)",
+                    "C-5 (Up to PKR 65M)",
+                    "C-6 (Up to PKR 25M)"
+                ],
+                index=5 # default C-4
+            )
+            # Extract short code (e.g. C-4)
+            pec_code = new_pec_cat.split(" ")[0]
+            
+            new_turnover = st.number_input(
+                "Annual Financial Turnover (PKR)",
+                min_value=1000000,
+                max_value=10000000000,
+                value=50000000,
+                step=5000000
+            )
+            
+            new_security = st.number_input(
+                "Max Bid Security / Guarantee Capacity (PKR)",
+                min_value=100000,
+                max_value=1000000000,
+                value=2500000,
+                step=500000
+            )
+            
+            new_regs = st.multiselect(
+                "Active Tax & Statutory Registrations",
+                [
+                    "FBR Active Taxpayer (NTN)",
+                    "Sales Tax Registration (STRN)",
+                    "PEC Registered (Pakistan Engineering Council)",
+                    "Punjab Revenue Authority (PRA)",
+                    "Sindh Revenue Board (SRB)",
+                    "Khyber Pakhtunkhwa Revenue Authority (KPRA)",
+                    "Balochistan Revenue Authority (BRA)"
+                ],
+                default=["FBR Active Taxpayer (NTN)", "Sales Tax Registration (STRN)", "PEC Registered (Pakistan Engineering Council)"]
+            )
+            
+            new_docs = st.multiselect(
+                "Mandatory Qualification Documents in Repository",
+                [
+                    "Company Registration Certificate",
+                    "FBR Tax Clearance Certificate",
+                    "PEC Valid License",
+                    "Audited Financial Statements (Last 3 Years)",
+                    "Past Relevant Experience Proof",
+                    "Bank Guarantee Capability Letter",
+                    "Machinery & Equipment Ownership Proof",
+                    "Non-Blacklisting Legal Affidavit",
+                    "5-Year Audited Balance Sheets"
+                ],
+                default=[
+                    "Company Registration Certificate",
+                    "FBR Tax Clearance Certificate",
+                    "PEC Valid License",
+                    "Audited Financial Statements (Last 3 Years)",
+                    "Past Relevant Experience Proof",
+                    "Bank Guarantee Capability Letter"
+                ]
+            )
+            
+            submitted = st.form_submit_button("💾 Save & Activate Profile", type="primary", use_container_width=True)
+            if submitted:
+                if not new_comp_name.strip():
+                    st.error("Please enter a valid company name.")
+                else:
+                    profile_key = f"{new_comp_name.strip()} (PEC {pec_code})"
+                    new_profile_dict = {
+                        "company_name": new_comp_name.strip(),
+                        "licence_category": pec_code,
+                        "turnover_pkr": int(new_turnover),
+                        "max_bid_security_pkr": int(new_security),
+                        "registrations": new_regs,
+                        "documents": new_docs
+                    }
+                    save_custom_profile(profile_key, new_profile_dict)
+                    st.session_state["selected_profile_key"] = profile_key
+                    st.success(f"✅ Created & Activated: {new_comp_name}")
+                    st.rerun()
 
     st.markdown(textwrap.dedent("""
     <div style="margin-top: 1.5rem; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.72rem; color: #64748B; line-height: 1.6;">
